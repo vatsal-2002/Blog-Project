@@ -10,7 +10,7 @@ The project consists of a React-based frontend that interacts with a Node.js bac
 
 - React.js - Library for building the user interface.
 - Axios - HTTP client for making API requests to the backend.
-- CSS - Styles for the frontend UI.
+- Tailwind CSS - Styles for the frontend UI.
 
 <!-- Backend: -->
 

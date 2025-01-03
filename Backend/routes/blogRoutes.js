@@ -3,6 +3,7 @@ const upload = require("../uploads/multer");
 const {
     getBlogs,
     getPrivateBlogs,
+    getBlogById,
     addBlog,
     updateBlog,
     deleteBlog,
@@ -13,9 +14,9 @@ const router = express.Router();
 // Blog-related routes
 router.get("/blogs", getBlogs);
 router.get("/private-blogs", getPrivateBlogs);
-router.post("/blogs", upload.none(), addBlog);
-router.get("/blogs/:id", updateBlog);
-router.put("/blogs/:id", updateBlog);
+router.get("/blogs/:id", getBlogById);
+router.post("/blogs", upload.single("image"), addBlog);
+router.put("/blogs/:id", upload.single("image"), updateBlog);
 router.delete("/blogs/:id", deleteBlog);
 
 module.exports = router;

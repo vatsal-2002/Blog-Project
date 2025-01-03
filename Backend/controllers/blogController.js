@@ -1,4 +1,5 @@
 const Blog = require("../models/blogModel");
+const mongoose = require('mongoose');
 
 // Route to get all blogs
 const getBlogs = async (req, res) => {
@@ -23,19 +24,35 @@ const getPrivateBlogs = async (req, res) => {
     }
 };
 
+const getBlogById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const blog = await Blog.findById(id);
+        if (!blog) {
+            return res.status(404).send('Blog not found');
+        }
+        res.json(blog); // Send the found blog as a response
+    } catch (error) {
+        console.error("Error fetching blog by ID:", error);
+        res.status(500).send('Server error');
+    }
+};
+
 // Route to add a new blog
 const addBlog = async (req, res) => {
-    const { title, shortDescription, content, authorId } = req.body;
+    const { title, shortDescription, authorId } = req.body;
+    const image = req.file;
 
     try {
-        if (!title || !shortDescription || !content || !authorId) {
-            return res.status(400).json({ error: "All fields are required" });
+        if (!title || !shortDescription || !authorId || !image) {
+            return res.status(400).json({ error: "All fields are required, including image" });
         }
+
 
         const newBlog = new Blog({
             title,
             shortDescription,
-            content,
+            imageUrl: `/uploads/${image.filename}`,
             authorId,
         });
 
@@ -51,23 +68,30 @@ const addBlog = async (req, res) => {
 const updateBlog = async (req, res) => {
     const { id } = req.params;
     const { title, shortDescription, content } = req.body;
+    const image = req.file; 
 
     try {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send('Invalid blog ID');
         }
 
-        const updatedBlog = await Blog.findByIdAndUpdate(
-            id,
-            { title, shortDescription, content },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedBlog) {
+        const blog = await Blog.findById(id);
+        if (!blog) {
             return res.status(404).send('Blog not found');
         }
 
+        if (image) {
+            blog.imageUrl = `/uploads/${image.filename}`; 
+        }
+
+        blog.title = title || blog.title;
+        blog.shortDescription = shortDescription || blog.shortDescription;
+        blog.content = content || blog.content;
+
+        const updatedBlog = await blog.save();
+
         res.status(200).json(updatedBlog);
+
     } catch (error) {
         console.error('Error updating blog:', error);
         if (error.name === 'ValidationError') {
@@ -89,4 +113,4 @@ const deleteBlog = async (req, res) => {
     }
 };
 
-module.exports = { getBlogs, getPrivateBlogs, addBlog, updateBlog, deleteBlog };
+module.exports = { getBlogs, getPrivateBlogs, getBlogById, addBlog, updateBlog, deleteBlog };
